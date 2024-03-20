@@ -2,21 +2,27 @@ import numpy as np
 import pandas as pd
 import yfinance as yf
 import openpyxl as openpyxl
+import yaml
 
+# Load config file
+with open("config.yaml", "r") as ymlfile:
+    cfg = yaml.safe_load(ymlfile)
 
 
 # Charger le fichier Excel
-data = "data/DataProjets.xlsx"
+data = cfg["Tickers_path"]
 Mapping = pd.read_excel(data, sheet_name="Mapping")
 Tickers = Mapping["Tickers"]
 Tickers_list = Tickers.tolist()
 
 
 
-# Download the data
-data = yf.download(Tickers_list, start="20014-01-01", end="2024-02-29")
+# Download the closing prices of the tickers
+prices_path = cfg["Prices_path"]
+data = yf.download(Tickers_list, start="2010-01-01", end="2020-01-01")["Adj Close"]
 data.fillna(method='ffill', inplace=True)
-data.to_csv("data/data_indexed.csv", index=True)    # Sauvegarde en CSV sans les index
+data = data.dropna(axis=1, how='all')
+data.to_csv(prices_path, index=True)    # Sauvegarde en CSV sans les index
 
 
 
