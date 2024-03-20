@@ -1,0 +1,3 @@
+Prices_path : "data/prices.csv"
+Tickers_path : "data/tickers.xlsx"
+returns_path : "data/returns.csv"
