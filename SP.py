@@ -39,7 +39,12 @@ for stock in prices.columns:
     result[stock] = df_merged[stock + "_x"] * df_merged[stock + "_y"]
 
 index = 21 * result.sum(axis=1) # tkt 
-percent_change = index.pct_change()
+
+# Rename the column 0 to sp
+index = index.rename("SP")
+
+# Save the SP 300 index
+index.to_csv(cfg["index_path"])
 
 
 # Create a figure for the SP 300 hunder index
