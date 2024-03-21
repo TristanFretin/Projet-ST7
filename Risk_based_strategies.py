@@ -302,7 +302,7 @@ def ib_ERB(rendements, n):      # Pour cet indice, le poids d'une entreprise au 
 
 
 def ibs_réf(rendements, n, supervision='no', nombre_mois_retour=1, Mk_risk_constraint=0.01):      # Cette fonction va tracer les différents indices boursiers de référence : EW, ERB, IV.
-    chemin_fichier_excel = "C:/Users/Trist/Documents/Cours 2A - CS/Semestre 8/ST7 - Finance stochastique/Projet ST7/DataProjets.xlsx"
+    chemin_fichier_excel = "./data/DataProjets.xlsx"
     xls = pd.ExcelFile(chemin_fichier_excel)
     MarketCaps = pd.read_excel(xls, "MarketCaps")
     taille = rendements.shape
@@ -450,21 +450,21 @@ def comparaisons_ibs(ibs):
 
 
 
-path = "C:/Users/Trist/Documents/Cours 2A - CS/Semestre 8/ST7 - Finance stochastique/Projet ST7/rendements_réduits.csv"
+path = "./data/returns.csv"
 rendements = pd.read_csv(path, sep=",",lineterminator='\n',skip_blank_lines=False, low_memory=False)
 
 #ib_EW(rendements, 400)
-#temps_début = time.time()
-#ibs_réf(rendements, 400, supervision='yes', nombre_mois_retour=6, Mk_risk_constraint=0.05)
-#temps_fin = time.time()
-#temps_exécution = temps_fin - temps_début
-#print("Temps d'exécution :", temps_exécution, "secondes")
+temps_début = time.time()
+ibs_réf(rendements, 400, supervision='yes', nombre_mois_retour=6, Mk_risk_constraint=0.05)
+temps_fin = time.time()
+temps_exécution = temps_fin - temps_début
+print("Temps d'exécution :", temps_exécution, "secondes")
 
 
-path_ib = "C:/Users/Trist/Documents/Cours 2A - CS/Semestre 8/ST7 - Finance stochastique/Projet ST7/Indices_400j.csv"
-ibs = pd.read_csv(path_ib, sep=",",lineterminator='\n',skip_blank_lines=False, low_memory=False)
+#path_ib = "C:/Users/Trist/Documents/Cours 2A - CS/Semestre 8/ST7 - Finance stochastique/Projet ST7/Indices_400j.csv"
+#ibs = pd.read_csv(path_ib, sep=",",lineterminator='\n',skip_blank_lines=False, low_memory=False)
 
-comparaisons_ibs(ibs)
+#comparaisons_ibs(ibs)
 
 
 

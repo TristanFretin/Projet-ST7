@@ -38,15 +38,17 @@ result = pd.DataFrame(index=df_merged.index)
 for stock in prices.columns:
     result[stock] = df_merged[stock + "_x"] * df_merged[stock + "_y"]
 
-index = 21 * result.sum(axis=1) # tkt 
+index = result.sum(axis=1) # tkt 
 percent_change = index.pct_change()
+index.set_axis(["date", "SP"], axis=1, inplace=True)
+index.to_csv(cfg["results_path"] + "index.csv")
 
 
 # Create a figure for the SP 300 hunder index
 plt.figure()
 plt.plot(index)
 plt.title("SP 300 Index")
-plt.ylabel("Percent Change")
+plt.ylabel("Indice boursier")
 plt.xlabel("Date")
 plt.grid()
 plt.savefig(cfg["graphs_path"] + "indice_boursier.png", dpi=1000)

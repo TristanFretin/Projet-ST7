@@ -44,7 +44,7 @@ max_drawdown = sp["drawdown"].min()
 
 # Calculate second maximum drawdown
 sp["drawdown"] = sp["drawdown"].abs()
-second_max_drawdown = sp["drawdown"].nlargest(2).iloc[-1]
+second_max_drawdown = - sp["drawdown"].nlargest(2).iloc[-1]
 
 # Calculate the number of days to recover from the maximum drawdown
 max_drawdown_date = sp["drawdown"].idxmin()

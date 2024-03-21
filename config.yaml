@@ -1,3 +1,6 @@
 Prices_path : "data/prices.csv"
 Tickers_path : "data/DataProjets.xlsx"
 returns_path : "data/returns.csv"
+graphs_path : "graphs/"
+results_path : "results/"
+index_path : "results/index.csv"
