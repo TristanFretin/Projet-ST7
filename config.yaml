@@ -1,5 +1,5 @@
 Prices_path : "data/prices.csv"
-Tickers_path : "data/tickers.xlsx"
+Tickers_path : "data/DataProjets.xlsx"
 returns_path : "data/returns.csv"
 graphs_path : "graphs/"
 index_path : "data/index.csv"
