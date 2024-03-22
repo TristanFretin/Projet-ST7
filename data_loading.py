@@ -21,6 +21,7 @@ Tickers_list = Tickers.tolist()
 prices_path = cfg["Prices_path"]
 data = yf.download(Tickers_list, start="2010-01-01", end="2024-03-19")["Adj Close"]
 data.fillna(method='ffill', inplace=True)
+# Replace NaN with 0 only when all the values in the column are NaN
 data = data.fillna(0)
 data.to_csv(prices_path, index=True)    # Sauvegarde en CSV sans les index
 
