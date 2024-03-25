@@ -2,106 +2,90 @@ import cvxpy as cp
 import numpy as np
 import pandas as pd
 import yaml
-import matplotlib.pyplot as plt
-import seaborn as sns
-import tqdm as tqdm
-
-sns.set_theme()
-
-with open("config.yaml", "r") as stream:
-    config = yaml.safe_load(stream)
 
 
-# Load the prices dataframe
-prices = pd.read_csv(config["Prices_data"]["save_path"], index_col=0)
-market_cap = pd.read_excel(config["Project_data"]["load_path"], index_col=0, sheet_name=config["Project_data"]["market_caps"])
-
-Mapping = pd.read_excel(config["Project_data"]["load_path"],sheet_name="Mapping")
-sedols_to_tickers = dict(zip(Mapping["Sedol"], Mapping["Tickers"]))
-
-# Rename the columns to tickers
-market_cap.columns = [sedols_to_tickers[sedol] for sedol in market_cap.columns]
-
-benchmark = pd.read_csv("data/index.csv", index_col=0)
-
-# Calculate the returns
-returns = prices.pct_change()
-# replace inf values with nan
-returns.replace([np.inf, -np.inf], np.nan, inplace=True)
-returns.fillna(0, inplace=True)
-
-# Take the mean by month
-returns.index = pd.to_datetime(returns.index)
-returns = returns.resample("M").mean()
-
-# Remove tickers with weird returns
-returns[["KRI", "BOL", "BLS", "CIN", "PBG", "SOV", "BMC", "HNZ", "EP"]] = 0
-
-# Calculate the covariance matrix
-mean_returns_all = returns.mean()
-std_returns_all = returns.std()
-
-cov_matrix = returns.cov()
-
-# print(market_cap.mean().head())
-
-# Plot a scatter plot of mean vs std with hue being the market cap
-# plt.figure()
-# sns.scatterplot(x=std_returns_all, y=mean_returns_all, hue=market_cap.mean(),size = market_cap.mean(), sizes = (20,200) , palette="viridis")
-# plt.xlabel("Standard deviation")
-# plt.ylabel("Mean return")
-# plt.title("Mean return vs Standard deviation")
-
-
-
-# Optimize the portfolio
-mean_returns_all_numpy = mean_returns_all.to_numpy()
-cov_matrix_numpy = cov_matrix.to_numpy()
 
 def optimize(mean, cov, risk_aversion):
     w = cp.Variable(len(mean))
-    objective = cp.Maximize(mean.T @ w)
+    objective = cp.Maximize(mean.T @w)
     constraints = [cp.sum(w) == 1, w >= 0, cp.quad_form(w, cov) <= risk_aversion]
     problem = cp.Problem(objective, constraints)
     problem.solve()
     return w.value, problem.value
+    
 
-w_risky, _ = optimize(mean_returns_all_numpy, cov_matrix_numpy, 1e-8)
-w_very_risky, _ = optimize(mean_returns_all_numpy, cov_matrix_numpy, 1e-5)
-w_very_very_risky, _ = optimize(mean_returns_all_numpy, cov_matrix_numpy, 1e-2)
-
-
-# Create the portfolio with three columns for the three different portfoliosù
-portfolio = pd.DataFrame(index=prices.index, columns=["Very very risky", "Very risky", "Risky"])
-
-for date in portfolio.index:
-    portfolio["Very very risky"].loc[date] = np.dot(w_very_very_risky, prices.loc[date].values)
-    portfolio["Very risky"].loc[date] = np.dot(w_very_risky, prices.loc[date].values)
-    portfolio["Risky"].loc[date] = np.dot(w_risky , prices.loc[date].values)
+# Load yaml config file
+with open("config.yaml", "r") as f:
+    config = yaml.safe_load(f)
 
 
+print("Loading data")
+# Load data
+sp = pd.read_csv(config["Prices_path"])
+sp["Date"] = pd.to_datetime(sp["Date"])
+sp.set_index("Date", inplace=True)
 
-portfolio.index = pd.to_datetime(portfolio.index)
-portfolio = portfolio.resample("M").mean()
+print("Data loaded")
 
-benchmark.index = pd.to_datetime(benchmark.index)
-benchmark = benchmark.resample("M").mean()
+# Parameters
+number_of_assets = len(sp.columns)
+start_date = "2019-01-02"
+end_date = "2019-12-31"
+months_past = 3
+risk_aversion = 0.1
+
+print("Setting up problem")
+print("Using data from", start_date, "to", end_date)
+print("Using", months_past, "months of past data")
+print("Risk aversion:", risk_aversion)
+print('Number of assets:', number_of_assets)
 
 
 
-# Plot the portfolio and the benchmark
-plt.figure()
-plt.plot(portfolio["Very very risky"], label="Portfolio Very Very risky")
-plt.plot(portfolio["Very risky"], label="Portfolio Very risky")
-plt.plot(portfolio["Risky"], label="Portfolio Riksy")
-plt.plot(benchmark, label="Benchmark")
-plt.legend()
-plt.show()
-# plt.savefig("graphs/Portfolio.png")
+# Solve problem for different dates 
+dates = pd.date_range(start=start_date, end=end_date, freq="MS")
 
-# Show the number of weights bigger than 1e-5
-print("For the very risky portfolio the number of weights bigger than 1e-3 is:", np.sum(w_risky > 1e-3))
-print("For the very very risky portfolio the number of weights bigger than 1e-3 is:", np.sum(w_very_risky > 1e-3))
-print("For the very very very risky portfolio the number of weights bigger than 1e-4 is:", np.sum(w_very_very_risky > 1e-3))
+# Create w dataframe
+w = pd.DataFrame(index=dates, columns=sp.columns)
 
-print("For compaison the number of weights bigger than 1e-3 in the market cap is:", np.sum(market_cap.mean() > 1e-3))
+###### TO FIX : SOME STOCKS GO FROM NAN TO SOME VALUE. SINCE WE 
+###### WE FILL NAN WITH 0 AND THEN CALCULATE A PERCENTAGE CHANGE
+###### WE GET SOME INF VALUES. THIS NEED A SOLUTION
+
+#### WE WILL REPLACE INF VALUES WITH 0
+
+print("Starting solving problem")
+for date in dates:
+    print("Solving for date", date)
+    sp_past_window = sp.loc[pd.to_datetime(date) - pd.DateOffset(months=months_past) : pd.to_datetime(date)]
+    sp_past_window_returns = sp_past_window.pct_change().fillna(0) # Account for columns only with Nan
+    sp_past_window_returns = sp_past_window_returns.iloc[1:] # drop first line with Nan
+
+    sp_past_window_returns = sp_past_window_returns.replace([np.inf, -np.inf], 0)
+
+    # Mean and covariance matrix
+    mean = sp_past_window_returns.mean().values
+    cov = sp_past_window.cov().values
+
+    cov_fixed = cov + 0.1 * np.identity(len(mean))
+
+    print("Covariance norm is", np.linalg.norm(cov_fixed))
+
+    # Optimize
+    try: 
+        weights, objective = optimize(mean, cov_fixed, risk_aversion)
+        w.loc[date] = weights
+        print("Problem solved successfully")
+    except:
+        print("Error in solving problem")
+        continue
+
+
+# save w to csv
+w.to_csv(config["weights_path"])
+
+    
+    
+
+
+    

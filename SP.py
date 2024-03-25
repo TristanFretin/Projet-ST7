@@ -38,7 +38,7 @@ result = pd.DataFrame(index=df_merged.index)
 for stock in prices.columns:
     result[stock] = df_merged[stock + "_x"] * df_merged[stock + "_y"]
 
-index = result.sum(axis=1) # tkt 
+index = 21 * result.sum(axis=1) # tkt 
 
 # Rename the column 0 to sp
 index = index.rename("SP")
