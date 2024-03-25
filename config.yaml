@@ -4,3 +4,16 @@ returns_path : "data/returns.csv"
 graphs_path : "graphs/"
 index_path : "data/index.csv"
 weights_path : "data/weights.csv"
+
+
+Prices_data : 
+    save_path : "data/prices.csv"
+    start_date : "2010-01-01"
+    end_date : "2020-01-01"
+
+Project_data : 
+    load_path : "data/DataProjets.xlsx"
+    modified_path : "data/DataProjets_adjusted.xlsx"
+    sedol_to_tickers : "Mapping"
+    market_caps : "MarketCaps"
+
