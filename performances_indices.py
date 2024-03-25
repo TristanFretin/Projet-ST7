@@ -44,7 +44,7 @@ max_drawdown = sp["drawdown"].min()
 
 # Calculate second maximum drawdown
 sp["drawdown"] = sp["drawdown"].abs()
-second_max_drawdown = sp["drawdown"].nlargest(2).iloc[-1]
+second_max_drawdown = - sp["drawdown"].nlargest(2).iloc[-1]
 
 # Calculate the number of days to recover from the maximum drawdown
 max_drawdown_date = sp["drawdown"].idxmin()
@@ -53,6 +53,9 @@ max_drawdown_date = sp["drawdown"].idxmin()
 # Valuate at risk quotidienne à 95%
 var_95 = sp["SP"].pct_change().quantile(0.05)
 
+# Expected Shortfall quotidien à 95%
+sorted_returns = sp['SP'].pct_change().sort_values()
+expected_shortfall = sorted_returns.iloc[:int(len(sorted_returns) * 0.05)].mean()
 
 # Pretty print of everything
 
@@ -61,6 +64,7 @@ print(f"Global annualized volatility: {global_annualized_volatility}")
 print(f"Maximum drawdown: {max_drawdown}")
 print(f"Second maximum drawdown: {second_max_drawdown}")
 print(f"Value at risk at 95%: {var_95}")
+print(f"Expected shortfall at 95%: {expected_shortfall}")
 print("\n")
 print("Yearly performances:")
 print(cagr)
